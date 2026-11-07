@@ -30,9 +30,51 @@ public class GameContractTests
 	[TestMethod]
 	public void Valuable_HasTheValueFields()
 	{
-		// TODO: add one RequireField / RequireMethod line for every game member this charm's effect reads, writes or patches,
-		// so a game update that renames or removes one fails here with a clear message.
 		RequireField("ValuableObject", "dollarValueCurrent");
+	}
+
+	[TestMethod]
+	public void Enemy_HasTheStateAndTargetMembers()
+	{
+		RequireField("Enemy", "MasterClient");
+		RequireField("Enemy", "CurrentState");
+		RequireField("Enemy", "TargetPlayerAvatar");
+		RequireField("Enemy", "Vision");
+		RequireField("Enemy", "HasVision");
+		RequireField("EnemyVision", "VisionTriggered");
+	}
+
+	[TestMethod]
+	public void EnemyStateChase_HasTheCountdowns()
+	{
+		RequireMethod("EnemyStateChase", "Update", 0);
+		RequireField("EnemyStateChase", "Enemy");
+		RequireField("EnemyStateChase", "StateTimer");
+		RequireField("EnemyStateChase", "VisionTimer");
+	}
+
+	[TestMethod]
+	public void EnemyStateChaseSlow_HasTheCountdown()
+	{
+		RequireMethod("EnemyStateChaseSlow", "Update", 0);
+		RequireField("EnemyStateChaseSlow", "Enemy");
+		RequireField("EnemyStateChaseSlow", "StateTimer");
+	}
+
+	[TestMethod]
+	public void EnemyStateLookUnder_HasTheCountdown()
+	{
+		RequireMethod("EnemyStateLookUnder", "Update", 0);
+		RequireField("EnemyStateLookUnder", "Enemy");
+		RequireField("EnemyStateLookUnder", "LookTimer");
+		RequireField("EnemyStateLookUnder", "WaitDone");
+	}
+
+	[TestMethod]
+	public void Helpers_Exist()
+	{
+		RequireMethod("SemiFunc", "IsMasterClientOrSingleplayer", 0);
+		RequireField("PlayerAvatar", "photonView");
 	}
 
 	// ---- Helpers ----

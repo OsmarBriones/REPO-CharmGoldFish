@@ -1,5 +1,6 @@
 using BepInEx;
 using CharmCore.Api;
+using HarmonyLib;
 using UnityEngine;
 
 namespace CharmGoldFish
@@ -15,6 +16,9 @@ namespace CharmGoldFish
 
 		internal static new BepInEx.Logging.ManualLogSource Logger { get; private set; } = null!;
 
+		/// <summary>The registered charm, for the Harmony patches.</summary>
+		internal static GoldFishCharm Charm { get; private set; } = null!;
+
 		private void Awake()
 		{
 			Logger = base.Logger;
@@ -23,10 +27,12 @@ namespace CharmGoldFish
 			this.gameObject.transform.parent = null;
 			this.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
-			// Registering binds Enabled, WearPercent, CooldownSeconds and the Debug section (DebugMode) in this mod's config file.
+			// Registering binds Enabled, WearPercent, LoseTrackMultiplier and the Debug section (DebugMode) in this mod's config file.
 			GoldFishCharm charm = new GoldFishCharm();
+			Charm = charm;
 			CharmsApi.Register(charm, Config);
 			this.gameObject.AddComponent<ShortMemory>().Charm = charm;
+			new Harmony(PluginGuid).PatchAll();
 
 			Logger.LogInfo($"{PluginName} {PluginVersion} loaded!");
 		}
