@@ -61,3 +61,12 @@ Provided by CharmCore: the `Debug.DebugMode` setting (off by default) places the
 - **Sight timer left alone while the target is in view:** the game resets it every frame then; touching it would only create a one-frame flicker.
 - **Own accumulator instead of `WearForSeconds`:** that helper works on the local player's `IsActive`; this effect runs on the host for any carrier.
 - **Multiplier range 1 to 5:** no value below 1 (it would help monsters), no more than 5.
+
+## Runtime hygiene
+Checked against `RepoKit/references/runtime-hygiene.md`:
+1. Lifetime of references: fixed. `ShortMemory` keeps dictionaries and sets keyed by `PlayerAvatar`/`ValuableObject` (carriers, pending wear, chased, scratch). `GoldFishCharm` now overrides `OnLevelEnded` and calls `ShortMemory.ClearAll()`, which empties all four collections and resets the refresh timer. No static field holds a game object (`ShortMemory.Instance` is the mod's own component, cleared in `OnDestroy`).
+2. Work frequency: ok. The carrier refresh runs every 0.2 s; `Update` returns before any wear work when no monster chased a carrier this frame. Not the host: collections are cleared and nothing else runs.
+3. Allocations: fixed. The refresh used a lambda that allocated a closure each time; it is now one delegate built in the constructor. The pending-wear cleanup is skipped when the dictionary is empty and the scratch list is emptied after use. The debug line in `Update` is guarded with `if (Charm.DebugMode)`. `CharmsApi.ForEachCarrier` (CharmCore) still allocates a player array and lists at 5 Hz; that is outside this mod. No `Find` calls.
+4. UI: not applicable (no UI).
+5. Patches: fixed. The three monster-state postfixes now test `ShortMemory.HasCarriers` (a count) first, so they exit immediately and allocate nothing when nobody carries the charm (and always on clients, where the cache is empty). The rest of the work is O(1) field reads.
+Not verified in game (build and unit tests only).

@@ -18,7 +18,7 @@ namespace CharmGoldFish.Patches
 			target = null!;
 			multiplier = 1f;
 			ShortMemory? memory = ShortMemory.Instance;
-			if (memory == null || enemy == null || !enemy.MasterClient || enemy.CurrentState != state || !SemiFunc.IsMasterClientOrSingleplayer())
+			if (memory == null || !memory.HasCarriers || enemy == null || !enemy.MasterClient || enemy.CurrentState != state || !SemiFunc.IsMasterClientOrSingleplayer())
 			{
 				return false;
 			}

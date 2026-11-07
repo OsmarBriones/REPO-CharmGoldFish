@@ -17,5 +17,11 @@ namespace CharmGoldFish
 
 		/// <summary>How many times faster the chase timers of monsters hunting the carrier run out (1 to 5).</summary>
 		internal CharmSetting LoseTrackMultiplier { get; }
+
+		/// <summary>Forgets the level's carriers, pending wear and chased players (they reference the level's players and valuables).</summary>
+		protected override void OnLevelEnded()
+		{
+			ShortMemory.Instance?.ClearAll();
+		}
 	}
 }

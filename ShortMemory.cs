@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CharmCore.Api;
 using CharmGoldFish.Domain;
@@ -18,11 +19,21 @@ namespace CharmGoldFish
 		private readonly Dictionary<PlayerAvatar, float> pendingWear = new Dictionary<PlayerAvatar, float>();
 		private readonly HashSet<PlayerAvatar> chased = new HashSet<PlayerAvatar>();
 		private readonly List<PlayerAvatar> scratch = new List<PlayerAvatar>();
+		private readonly Action<PlayerAvatar, ValuableObject> collectCarrier;
 		private float nextRefresh;
+
+		public ShortMemory()
+		{
+			// One delegate for the whole life of the component, so the 5 Hz refresh does not allocate a closure each time.
+			collectCarrier = (player, valuable) => carriers[player] = valuable;
+		}
 
 		internal static ShortMemory? Instance { get; private set; }
 
 		internal GoldFishCharm Charm { get; set; } = null!;
+
+		/// <summary>True while at least one carrier is known; the monster patches exit at once when it is false.</summary>
+		internal bool HasCarriers => carriers.Count > 0;
 
 		private void Awake()
 		{
@@ -86,7 +97,11 @@ namespace CharmGoldFish
 				pendingWear[player] = pending;
 				if (step > 0f)
 				{
-					Charm.LogDebug($"Short Memory: monsters are chasing {player.name}; wearing {valuable.name} by {step:0.##}%");
+					if (Charm.DebugMode)
+					{
+						Charm.LogDebug($"Short Memory: monsters are chasing {player.name}; wearing {valuable.name} by {step:0.##}%");
+					}
+
 					Charm.WearValuable(valuable, step, quiet: true);
 				}
 			}
@@ -97,7 +112,12 @@ namespace CharmGoldFish
 		private void Refresh()
 		{
 			carriers.Clear();
-			CharmsApi.ForEachCarrier(Charm, (player, valuable) => carriers[player] = valuable);
+			CharmsApi.ForEachCarrier(Charm, collectCarrier);
+
+			if (pendingWear.Count == 0)
+			{
+				return;
+			}
 
 			scratch.Clear();
 			foreach (PlayerAvatar player in pendingWear.Keys)
@@ -112,16 +132,22 @@ namespace CharmGoldFish
 			{
 				pendingWear.Remove(player);
 			}
+
+			scratch.Clear();
 		}
 
-		private void ClearAll()
+		/// <summary>Forgets everything about the level: carriers, pending wear, chased players. Called when the level ends and while not the host.</summary>
+		internal void ClearAll()
 		{
-			if (carriers.Count > 0 || pendingWear.Count > 0 || chased.Count > 0)
+			if (carriers.Count > 0 || pendingWear.Count > 0 || chased.Count > 0 || scratch.Count > 0)
 			{
 				carriers.Clear();
 				pendingWear.Clear();
 				chased.Clear();
+				scratch.Clear();
 			}
+
+			nextRefresh = 0f;
 		}
 	}
 }
