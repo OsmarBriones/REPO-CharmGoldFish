@@ -32,7 +32,7 @@ Settings are in `com.osmar.CharmGoldFish.cfg` inside `BepInEx/config`, section `
 - `WearPercent` (default `2`): share of the valuable's original value lost each second a monster is chasing you while the power works. Several monsters chasing you at once still cost the same.
 - `LoseTrackMultiplier` (default `2`, from `1` to `5`): how many times faster hunting monsters lose track of you. `1` means no effect.
 
-Section `Debug`: `DebugMode` (default `false`) places a Gold Fish on the floor in front of you when a level starts (host or singleplayer) and writes extra log lines. For testing.
+Section `Debug`: `DebugMode` (default `false`) places a Gold Fish on the floor in front of you when a level starts (host or singleplayer) and writes extra log lines. For testing. `SpawnNow` (default `false`, needs `DebugMode`): set it to `true` while a level is running to place one right away; it switches itself back off.
 
 ## Issues & Bug Reports
 The official way to report issues, suggest improvements, or submit feedback is by opening an issue on the official GitHub repository:
