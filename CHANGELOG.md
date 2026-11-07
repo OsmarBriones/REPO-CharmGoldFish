@@ -1,4 +1,7 @@
 # Changelog
 
-## 1.0.0
-- First release!
+## [Unreleased]
+
+### Added
+- Short Memory: monsters lose track of you twice as fast.
+- `Debug.DebugMode` (off by default): puts the Gold Fish on the floor at the start of each level and writes detailed logs.
