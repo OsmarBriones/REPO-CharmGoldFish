@@ -87,7 +87,7 @@ namespace CharmGoldFish
 				if (step > 0f)
 				{
 					Charm.LogDebug($"Short Memory: monsters are chasing {player.name}; wearing {valuable.name} by {step:0.##}%");
-					Charm.WearValuable(valuable, step);
+					Charm.WearValuable(valuable, step, quiet: true);
 				}
 			}
 
