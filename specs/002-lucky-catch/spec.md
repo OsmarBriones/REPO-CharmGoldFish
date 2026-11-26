@@ -14,7 +14,7 @@ A player stores the Gold Fish in a pocket. Each valuable that player is the firs
 
 ## Requirements
 - FR-001: Registers a charm with CharmCore for the prefab Valuable Museum GoldFish.
-- FR-002: Settings, host-authoritative: `Enabled`, `DuplicateChancePercent` (0 to 100, default 10), `WearPercent` (share of the copy's value paid, 0 to 100, default 100). `DebugMode` and `SpawnNow` are local.
+- FR-002: Settings, host-authoritative: `Enabled`, `DuplicateChancePercent` (0 to 100, default 20), `WearPercent` (share of the copy's value paid, 0 to 100, default 100). `DebugMode` and `SpawnNow` are local.
 - FR-003: The host rolls, spawns the copy and applies the cost; a client only reports its discovery.
 - FR-004: Monster orbs and extraction surplus bags are never duplicated.
 - FR-005: All players install it (Category 2); depends on Pockets and CharmCore.

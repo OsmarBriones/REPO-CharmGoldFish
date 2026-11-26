@@ -29,7 +29,7 @@ namespace CharmGoldFish
 			: base("GoldFish", "Gold Fish - Lucky Catch", defaultWearPercent: 100f, defaultCooldownSeconds: null, PrefabName)
 		{
 			WearDescription = "How much of a copy's value the Gold Fish pays for making it, in percent (0 to 100). 100 = the fish loses exactly the value that was created; it breaks when it cannot pay.";
-			DuplicateChancePercent = AddSetting("DuplicateChancePercent", 10f, 0f, 100f, "Chance, in percent (0 to 100), that a valuable you are the first to discover is duplicated. 0 = never, 100 = always.");
+			DuplicateChancePercent = AddSetting("DuplicateChancePercent", 20f, 0f, 100f, "Chance, in percent (0 to 100), that a valuable you are the first to discover is duplicated. 0 = never, 100 = always.");
 		}
 
 		/// <summary>Chance of a copy for each first discovery (0 to 100).</summary>

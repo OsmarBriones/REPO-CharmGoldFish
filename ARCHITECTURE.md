@@ -4,7 +4,7 @@ A Charm mod (layer 3 of the PocketCharms family): one valuable, one power. It de
 
 ## The power: Lucky Catch
 
-When the carrier is the first to discover a valuable, there is a `DuplicateChancePercent` chance (default 10) that the host creates a copy worth the original's current value. The Gold Fish is worn by `WearPercent` percent (default 100) of that value.
+When the carrier is the first to discover a valuable, there is a `DuplicateChancePercent` chance (default 20) that the host creates a copy worth the original's current value. The Gold Fish is worn by `WearPercent` percent (default 100) of that value.
 
 1. **Detect (carrier's machine).** `Patches/ValuableObject_Discover_Patch.cs` postfixes `ValuableObject.Discover`. The game calls it only on the machine of the player looking (`PhysGrabber.RayCheck`) and it returns true only for the first discovery (`State.Discover`; reminders return false).
 2. **Report.** `GoldFishCharm.ReportDiscovery` checks `IsActive` and `RunIsLevel`, then uses CharmCore's `SendToHost`. On the host (or alone) the request carries the object itself (singleplayer view ids are all 0); a client sends the PhotonView id. CharmCore verifies the sender carries the charm.
@@ -18,7 +18,7 @@ When the carrier is the first to discover a valuable, there is a `DuplicateChanc
 ## Settings
 | Key | Type | Range | Default | Meaning |
 |---|---|---|---|---|
-| `DuplicateChancePercent` | float | 0 to 100 | 10 | Chance per first discovery. 0 never, 100 always. |
+| `DuplicateChancePercent` | float | 0 to 100 | 20 | Chance per first discovery. 0 never, 100 always. |
 | `WearPercent` (CharmCore, own description) | float | 0 to 100 | 100 | Share of the copy's value the fish pays. CharmCore's global `WearMultiplier` also applies. 0 makes copies free. |
 | `Enabled` (CharmCore) | bool | | true | |
 

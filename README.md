@@ -7,13 +7,13 @@ Lucky Catch: while the Gold Fish is in your pocket, every valuable you are the f
 ## How to Use
 
 1. Find the **Gold Fish** valuable and store it in a free inventory slot with [Pockets](https://thunderstore.io/c/repo/p/OsmarBriones/Pockets/) (grab it, press the slot key).
-2. Explore. When **you** discover a valuable nobody had found yet (the moment its outline and price appear), there is a 10% chance that a second one just like it pops up next to it, with a flash and a sound.
+2. Explore. When **you** discover a valuable nobody had found yet (the moment its outline and price appear), there is a 20% chance that a second one just like it pops up next to it, with a flash and a sound.
 3. The Gold Fish loses as much value as the copy is worth. If the copy is worth as much as the fish or more, you still get the whole copy and the fish breaks.
 4. Take the valuable out of the pocket and the power stops.
 
 ## Features
 
-- **Lucky Catch:** a 10% chance of a duplicate each time you are the first to find a valuable. Finds made by your teammates do not count.
+- **Lucky Catch:** a 20% chance of a duplicate each time you are the first to find a valuable. Finds made by your teammates do not count.
 - **One chance per valuable:** each valuable gets a single try, and a copy can never be duplicated again.
 - **The fish pays:** cheap copies slowly drain the fish; a very expensive find can be duplicated for the price of the whole fish. That is the big catch.
 - **It breaks when nearly empty:** as with every worn-out valuable, the fish also breaks when less than 15% of its original value is left.
@@ -41,7 +41,7 @@ Monster orbs and the money bag left over after an extraction are never duplicate
 Settings are in `com.osmar.CharmGoldFish.cfg` inside `BepInEx/config`, section `Charm.GoldFish`. The host's choices apply to everyone.
 
 - `Enabled` (default `true`): turn this charm on or off.
-- `DuplicateChancePercent` (default `10`, from `0` to `100`): chance that a valuable you are the first to discover is duplicated.
+- `DuplicateChancePercent` (default `20`, from `0` to `100`): chance that a valuable you are the first to discover is duplicated.
 - `WearPercent` (default `100`, from `0` to `100`): how much of the copy's value the Gold Fish pays. `100` means it loses exactly what was created, `50` half of it, `0` makes copies free.
 
 Section `Debug`: `DebugMode` (default `false`) places a Gold Fish on the floor in front of you when a level starts (host or singleplayer) and writes extra log lines. For testing. `SpawnNow` (default `false`, needs `DebugMode`): set it to `true` while a level is running to place one right away; it switches itself back off.
