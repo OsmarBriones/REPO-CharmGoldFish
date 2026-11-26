@@ -1,6 +1,7 @@
 using BepInEx;
 using CharmCore.Api;
 using HarmonyLib;
+using Photon.Pun;
 using UnityEngine;
 
 namespace CharmGoldFish
@@ -16,7 +17,9 @@ namespace CharmGoldFish
 
 		internal static new BepInEx.Logging.ManualLogSource Logger { get; private set; } = null!;
 
-		/// <summary>The registered charm, for the Harmony patches.</summary>
+		private readonly CopyEffect copyEffect = new CopyEffect();
+
+		/// <summary>The registered charm, for the Harmony patch.</summary>
 		internal static GoldFishCharm Charm { get; private set; } = null!;
 
 		private void Awake()
@@ -27,11 +30,11 @@ namespace CharmGoldFish
 			this.gameObject.transform.parent = null;
 			this.gameObject.hideFlags = HideFlags.HideAndDontSave;
 
-			// Registering binds Enabled, WearPercent, LoseTrackMultiplier and the Debug section (DebugMode) in this mod's config file.
+			// Registering binds Enabled, WearPercent, DuplicateChancePercent and the Debug section (DebugMode) in this mod's config file.
 			GoldFishCharm charm = new GoldFishCharm();
 			Charm = charm;
 			CharmsApi.Register(charm, Config);
-			this.gameObject.AddComponent<ShortMemory>().Charm = charm;
+			PhotonNetwork.AddCallbackTarget(copyEffect);
 			new Harmony(PluginGuid).PatchAll();
 
 			Logger.LogInfo($"{PluginName} {PluginVersion} loaded!");

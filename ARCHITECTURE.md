@@ -1,44 +1,34 @@
 # CharmGoldFish Architecture
 
-A Charm mod (layer 3 of the PocketCharms family): one valuable, one power. It depends on **Pockets** (storage) and **CharmCore** (registry, wear, cooldown display, host settings, debug mode).
+A Charm mod (layer 3 of the PocketCharms family): one valuable, one power. It depends on **Pockets** (storage) and **CharmCore** (registry, wear, host settings, host requests, debug mode).
 
-## The power: Short Memory
+## The power: Lucky Catch
 
-While a player carries the Gold Fish, monsters hunting that player lose track of them `LoseTrackMultiplier` times as fast (default 2). It is a host effect: monster AI runs only on the master.
+When the carrier is the first to discover a valuable, there is a `DuplicateChancePercent` chance (default 10) that the host creates a copy worth the original's current value. The Gold Fish is worn by `WearPercent` percent (default 100) of that value.
 
-- `GoldFishCharm : Charm` registers the prefab `Valuable Museum GoldFish`, sets `WearsPerSecond = true` (default wear 2% per second, no cooldown) and the setting `LoseTrackMultiplier`.
-- `ShortMemory` (a `MonoBehaviour`, host only) keeps a carrier cache (`CharmsApi.ForEachCarrier`, refreshed every 0.2 s), collects "player X was chased this frame" notes from the patches and accumulates wear per carrier in a dictionary; when at least 1% is pending it calls `charm.WearValuable(valuable, pending)`. Wear is per carrier per frame, so several monsters cost the same as one.
-- `Patches/LoseTrackPatches.cs`: Harmony postfixes (applied with `PatchAll` in the plugin `Awake`). Each runs after the state's `Update`, only if `SemiFunc.IsMasterClientOrSingleplayer()`, `Enemy.MasterClient`, the enemy is still in that state, its `TargetPlayerAvatar` is a carrier and the charm is enabled. It subtracts a further `(multiplier - 1) x Time.deltaTime` from the countdown, clamped at 0.
-- `Domain/LoseTrackMath.cs`: game-free `ExtraDecrease`, `Applies`, `TakeWear`; unit tested in `LoseTrackMathTests`.
+1. **Detect (carrier's machine).** `Patches/ValuableObject_Discover_Patch.cs` postfixes `ValuableObject.Discover`. The game calls it only on the machine of the player looking (`PhysGrabber.RayCheck`) and it returns true only for the first discovery (`State.Discover`; reminders return false).
+2. **Report.** `GoldFishCharm.ReportDiscovery` checks `IsActive` and `RunIsLevel`, then uses CharmCore's `SendToHost`. On the host (or alone) the request carries the object itself (singleplayer view ids are all 0); a client sends the PhotonView id. CharmCore verifies the sender carries the charm.
+3. **Roll (host).** `OnHostRequest` rejects dead or pocketed valuables, claims the valuable in `RolledValuables` (one chance per valuable and level, keyed by instance id) and rolls.
+4. **Copy (host).** `ValuableCopier` finds the prefab by name in the Resources size folders (`Valuables/01 Tiny` to `07 Very Tall`), picks a free spot above or beside the original (line of sight to it, no overlap), protects the original from damage for 2 s, spawns it (`PhotonNetwork.InstantiateRoomObject`, or `Instantiate` alone) and sets `dollarValueOverride` before the new valuable reads its value. The game then sends the value to the clients and protects new objects from damage for a few seconds. The copy is claimed at once, so it never rolls.
+5. **Feedback.** `CopyEffect` plays the game's teleport effect and unequip sound at the spot, on the host and, through Photon event 186, on every other machine.
+6. **Pay.** `Domain/LuckyCatchMath.WearForCopy` turns the cost into a percentage of the fish's original value (capped at 100) and `Charm.WearValuable` applies it, so CharmCore's wear rules hold: wear handlers (the Ruben Doll) can reduce it and the fish is destroyed under 15% of its original value. If no copy could be created, nothing is paid.
 
-### What is covered
-| State | Timer sped up | Normal result when it reaches 0 |
-|---|---|---|
-| `EnemyStateChase` | `StateTimer` (private) | next `Update`: `StateTimer -= dt; <= 0` sets `ChaseSlow` |
-| `EnemyStateChase` | `VisionTimer` (only while the target is not in view) | the monster stops tracking the live position and walks to the last seen point; `StateTimer` then ends the chase; no error at 0 (the code tests `> 0`) |
-| `EnemyStateChaseSlow` | `StateTimer` (private) | sets `ChaseEnd`, then `Roaming` |
-| `EnemyStateLookUnder` | `LookTimer` (private; only once `WaitDone`) | sets `ChaseSlow` |
-
-### What is not covered (on purpose)
-- `ChaseBegin` (the short wind-up before a chase), `ChaseEnd` (the monster already lost the target, it only pauses), `Roaming` and `Sneak`: they are not about holding on to a known player. `Investigate` is about a noise position, not a player.
-- `LookUnder`'s `WaitTimer` (waiting at the hiding spot) is not sped up, only the search after it.
-- Timers inside monster-specific scripts (custom AI beyond the shared states) are untouched.
-- A monster that sees the player resets its timers as usual; the power shortens the countdowns, it does not blind monsters.
+`Domain/LuckyCatchMath.cs` is game-free and unit tested (`LuckyCatchMathTests`).
 
 ## Settings
 | Key | Type | Range | Default | Meaning |
 |---|---|---|---|---|
-| `LoseTrackMultiplier` | float | 1 to 5 | 2 | Times faster the countdowns run. 1 = no effect (and no wear). Below 1 would make monsters hold on longer, so it is not offered; 5 is a sensible maximum. |
-| `WearPercent` (CharmCore) | float | 0 to 100 | 2 | Percent of the original value per second a monster is actually chasing the carrier. |
+| `DuplicateChancePercent` | float | 0 to 100 | 10 | Chance per first discovery. 0 never, 100 always. |
+| `WearPercent` (CharmCore, own description) | float | 0 to 100 | 100 | Share of the copy's value the fish pays. CharmCore's global `WearMultiplier` also applies. 0 makes copies free. |
 | `Enabled` (CharmCore) | bool | | true | |
 
 ## Game members used
 
-- `EnemyStateChase.Update`, fields `Enemy`, `StateTimer` (private), `VisionTimer`.
-- `EnemyStateChaseSlow.Update`, fields `Enemy`, `StateTimer` (private).
-- `EnemyStateLookUnder.Update`, fields `Enemy`, `LookTimer` (private), `WaitDone`.
-- `Enemy.MasterClient`, `CurrentState`, `TargetPlayerAvatar`, `Vision`, `HasVision`; `EnemyVision.VisionTriggered`.
-- `SemiFunc.IsMasterClientOrSingleplayer`, `PlayerAvatar.photonView`, `ValuableObject.dollarValueCurrent` (wear, done by CharmCore).
+- `ValuableObject.Discover` (patched), `ValuableDiscoverGraphic.State`.
+- `ValuableObject.dollarValueCurrent`, `dollarValueOriginal`, `dollarValueOverride`, `physGrabObject`.
+- `PhysGrabObject.dead`, `OverrideIndestructible`.
+- `AssetManager.instance`, `prefabTeleportEffect`, `soundUnequip`.
+- `SemiFunc.IsMasterClientOrSingleplayer`, `IsMultiplayer`, `RunIsLevel`.
 
 All are checked by `CharmGoldFish.Tests/GameContractTests.cs`.
 
@@ -48,25 +38,27 @@ Provided by CharmCore: the `Debug.DebugMode` setting (off by default) places the
 
 ## Known limits
 
-- Looked up by exact prefab name; a game update that renames the prefab needs a mod update.
-- Not verified in game: the build and unit tests prove the arithmetic and that the members exist, not the behaviour of the monsters. The patches have never run in the game.
-- The carrier cache refreshes every 0.2 s, so picking up or dropping the fish takes up to that long to affect monsters.
-- Only the host applies the effect; a carrier who is not the host is covered because Pockets tracks every player's pockets on every machine.
+- Not verified in game: the build, unit tests and contract tests prove the arithmetic and that the members exist, not the spawning, the placement or the multiplayer flow.
+- Needs a CharmCore build that has `Charm.WearDescription`.
+- A valuable is copied by prefab name from the size folders. Monster orbs and surplus bags live elsewhere and are skipped; a new size folder in a game update would silently stop copies for it (a debug line says so).
+- The copy takes the original's current value as both its original and current value. Special state of a valuable (for example one that was already triggered) is not copied.
+- The copy adds its value to the level's maximum haul figure shown in the truck, as any spawned valuable does; the extraction goal was already set.
+- Big copies in tight places may find no free spot and then appear above the original.
+- Everyone must have the mod: a client without it would not see the effect or be able to carry the fish.
 
 ## Decisions
 
-- **Postfix with an extra decrease:** the game's own decrease and transition logic stay untouched; clamping at 0 lets the game's own `<= 0` check in the next frame change state.
-- **Wear per carrier, not per monster:** one note per player per frame, so a crowd of monsters does not multiply the wear.
-- **Wear only when a timer was really sped up:** a timer already at 0, a visible target's sight timer or multiplier 1 cost nothing.
-- **Sight timer left alone while the target is in view:** the game resets it every frame then; touching it would only create a one-frame flicker.
-- **Own accumulator instead of `WearForSeconds`:** that helper works on the local player's `IsActive`; this effect runs on the host for any carrier.
-- **Multiplier range 1 to 5:** no value below 1 (it would help monsters), no more than 5.
+- **Patch the discovery, not the camera:** the game already defines "you found it first" and scores it.
+- **Host rolls:** one authority, and a repeated or forged request cannot roll twice.
+- **Pay after spawning:** the fish never pays for a copy that does not exist.
+- **Full copy even when the fish cannot pay:** the owner's rule; it is the jackpot of the power.
+- **`WearPercent` reused as the cost share** instead of a second setting, with its own config description (`Charm.WearDescription`).
+- **Own Photon event for the effect:** the game has no networked "flash here" call without side effects.
 
 ## Runtime hygiene
 Checked against `RepoKit/references/runtime-hygiene.md`:
-1. Lifetime of references: fixed. `ShortMemory` keeps dictionaries and sets keyed by `PlayerAvatar`/`ValuableObject` (carriers, pending wear, chased, scratch). `GoldFishCharm` now overrides `OnLevelEnded` and calls `ShortMemory.ClearAll()`, which empties all four collections and resets the refresh timer. No static field holds a game object (`ShortMemory.Instance` is the mod's own component, cleared in `OnDestroy`).
-2. Work frequency: ok. The carrier refresh runs every 0.2 s; `Update` returns before any wear work when no monster chased a carrier this frame. Not the host: collections are cleared and nothing else runs.
-3. Allocations: fixed. The refresh used a lambda that allocated a closure each time; it is now one delegate built in the constructor. The pending-wear cleanup is skipped when the dictionary is empty and the scratch list is emptied after use. The debug line in `Update` is guarded with `if (Charm.DebugMode)`. `CharmsApi.ForEachCarrier` (CharmCore) still allocates a player array and lists at 5 Hz; that is outside this mod. No `Find` calls.
+1. Lifetime of references: ok. Only instance ids are kept (`RolledValuables`), cleared in `OnLevelEnded`. No static field holds a game object; the Photon callback object holds none.
+2. Work frequency: ok. Nothing runs per frame; everything is driven by a discovery or a Photon event.
+3. Allocations: ok. The patch does nothing unless a first discovery happens; component and prefab lookups run once per successful copy.
 4. UI: not applicable (no UI).
-5. Patches: fixed. The three monster-state postfixes now test `ShortMemory.HasCarriers` (a count) first, so they exit immediately and allocate nothing when nobody carries the charm (and always on clients, where the cache is empty). The rest of the work is O(1) field reads.
-Not verified in game (build and unit tests only).
+5. Patches: ok. The postfix exits on the result check; the rest runs once per discovered valuable.

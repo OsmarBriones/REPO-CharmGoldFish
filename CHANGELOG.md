@@ -3,8 +3,8 @@
 ## [Unreleased]
 
 ### Changed
-- Runtime hygiene pass: the carrier, pending-wear and chased collections are cleared when a level ends; the monster patches exit first on a cheap carrier check; the carrier refresh no longer allocates a closure; debug lines in `Update` are guarded.
+- The power is now Lucky Catch. It replaces Short Memory (monsters losing track of the carrier), which was removed before any release: it did too little and players could not tell it was happening.
 
 ### Added
-- Short Memory: monsters hunting a player who carries the Gold Fish lose track of them faster (`LoseTrackMultiplier`, default 2). Wears the valuable per second of being chased (default 2%/s).
+- Lucky Catch: a valuable the carrier is the first to discover has a chance (`DuplicateChancePercent`, default 10%) to be duplicated. The Gold Fish loses as much value as the copy is worth (`WearPercent`, default 100% of the copy's value) and breaks when it cannot pay. A flash and a sound show every player where the copy appeared.
 - `Debug.DebugMode` (off by default): puts the Gold Fish on the floor at the start of each level and writes detailed logs.

@@ -25,56 +25,45 @@ public class GameContractTests
 		internal HashSet<string> Methods { get; } = new HashSet<string>();
 	}
 
-	// ---- Members we read or write ----
+	// ---- Members we patch, read or write ----
+
+	[TestMethod]
+	public void ValuableObject_HasTheDiscoverMethod()
+	{
+		RequireMethod("ValuableObject", "Discover", 1);
+		RequireType("ValuableDiscoverGraphic");
+	}
 
 	[TestMethod]
 	public void Valuable_HasTheValueFields()
 	{
 		RequireField("ValuableObject", "dollarValueCurrent");
+		RequireField("ValuableObject", "dollarValueOriginal");
+		RequireField("ValuableObject", "dollarValueOverride");
+		RequireField("ValuableObject", "physGrabObject");
 	}
 
 	[TestMethod]
-	public void Enemy_HasTheStateAndTargetMembers()
+	public void PhysGrabObject_CanBeProtected()
 	{
-		RequireField("Enemy", "MasterClient");
-		RequireField("Enemy", "CurrentState");
-		RequireField("Enemy", "TargetPlayerAvatar");
-		RequireField("Enemy", "Vision");
-		RequireField("Enemy", "HasVision");
-		RequireField("EnemyVision", "VisionTriggered");
+		RequireMethod("PhysGrabObject", "OverrideIndestructible", 1);
+		RequireField("PhysGrabObject", "dead");
 	}
 
 	[TestMethod]
-	public void EnemyStateChase_HasTheCountdowns()
+	public void CopyEffect_AssetsExist()
 	{
-		RequireMethod("EnemyStateChase", "Update", 0);
-		RequireField("EnemyStateChase", "Enemy");
-		RequireField("EnemyStateChase", "StateTimer");
-		RequireField("EnemyStateChase", "VisionTimer");
-	}
-
-	[TestMethod]
-	public void EnemyStateChaseSlow_HasTheCountdown()
-	{
-		RequireMethod("EnemyStateChaseSlow", "Update", 0);
-		RequireField("EnemyStateChaseSlow", "Enemy");
-		RequireField("EnemyStateChaseSlow", "StateTimer");
-	}
-
-	[TestMethod]
-	public void EnemyStateLookUnder_HasTheCountdown()
-	{
-		RequireMethod("EnemyStateLookUnder", "Update", 0);
-		RequireField("EnemyStateLookUnder", "Enemy");
-		RequireField("EnemyStateLookUnder", "LookTimer");
-		RequireField("EnemyStateLookUnder", "WaitDone");
+		RequireField("AssetManager", "instance");
+		RequireField("AssetManager", "prefabTeleportEffect");
+		RequireField("AssetManager", "soundUnequip");
 	}
 
 	[TestMethod]
 	public void Helpers_Exist()
 	{
 		RequireMethod("SemiFunc", "IsMasterClientOrSingleplayer", 0);
-		RequireField("PlayerAvatar", "photonView");
+		RequireMethod("SemiFunc", "IsMultiplayer", 0);
+		RequireMethod("SemiFunc", "RunIsLevel", 0);
 	}
 
 	// ---- Helpers ----
