@@ -19,6 +19,12 @@ Set `DebugMode = true` in the `Debug` section of `BepInEx/config/com.osmar.Charm
 - [ ] The copy counts toward the extraction when placed in the zone.
 - [ ] Next level: the power works again; no errors on level change.
 
+## Probability
+Keep `DebugMode = true` with `DuplicateChancePercent = 10`. `WearPercent = 0` keeps the fish alive so many rolls can be gathered.
+- [ ] Each first discovery logs one `Lucky Catch roll #N` line with the rolled figure and `needs below 10`.
+- [ ] A roll below 10 says `COPY`, any other says `no copy`.
+- [ ] Over many rolls (50 or more) the share of wins in the last line approaches 10%.
+
 ## Settings
 - [ ] `DuplicateChancePercent = 0`: never copies. Default 10: occasional copies.
 - [ ] `WearPercent = 50`: the fish pays half the copy's value. `0`: free copies.

@@ -34,7 +34,7 @@ All are checked by `CharmGoldFish.Tests/GameContractTests.cs`.
 
 ## Debug mode
 
-Provided by CharmCore: the `Debug.DebugMode` setting (off by default) places the valuable on the floor at the start of each level and enables `Charm.LogDebug` output.
+Provided by CharmCore: the `Debug.DebugMode` setting (off by default) places the valuable on the floor at the start of each level and enables `Charm.LogDebug` output. On the host, every roll is logged with its number, the valuable, the rolled figure, the chance in force and the running total of wins since the game started; a repeated report of the same valuable is logged as skipped.
 
 ## Known limits
 

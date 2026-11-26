@@ -21,6 +21,10 @@ namespace CharmGoldFish
 		private readonly RolledValuables rolled = new RolledValuables();
 		private readonly System.Random random = new System.Random();
 
+		// Totals since the game started, so the debug log shows how often the roll really wins.
+		private int rolls;
+		private int wins;
+
 		internal GoldFishCharm()
 			: base("GoldFish", "Gold Fish - Lucky Catch", defaultWearPercent: 100f, defaultCooldownSeconds: null, PrefabName)
 		{
@@ -75,17 +79,26 @@ namespace CharmGoldFish
 			// One chance per valuable and level, whoever asks and however often.
 			if (!rolled.TryClaim(original.GetInstanceID()))
 			{
+				if (DebugMode)
+				{
+					LogDebug($"Lucky Catch: {original.name} already had its chance; no roll");
+				}
+
 				return;
 			}
 
 			float chance = DuplicateChancePercent.Value;
-			if (!LuckyCatchMath.Wins(chance, random.NextDouble()))
+			double roll = random.NextDouble();
+			bool won = LuckyCatchMath.Wins(chance, roll);
+			rolls++;
+			wins += won ? 1 : 0;
+			if (DebugMode)
 			{
-				if (DebugMode)
-				{
-					LogDebug($"Lucky Catch: no copy of {original.name} (chance {chance:0.#}%)");
-				}
+				LogDebug($"Lucky Catch roll #{rolls}: {original.name} (value {original.dollarValueCurrent:0}) rolled {roll * 100d:0.00}, needs below {chance:0.##} -> {(won ? "COPY" : "no copy")} (copies won since the game started: {wins} of {rolls})");
+			}
 
+			if (!won)
+			{
 				return;
 			}
 
@@ -93,6 +106,7 @@ namespace CharmGoldFish
 			int value = LuckyCatchMath.CopyValue(original.dollarValueCurrent);
 			if (fishes.Count == 0 || value == 0)
 			{
+				LogDebug($"Lucky Catch: nothing to copy (Gold Fish carried: {fishes.Count}, copy value {value})");
 				return;
 			}
 
